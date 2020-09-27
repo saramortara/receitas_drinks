@@ -1,0 +1,47 @@
+---
+title: "Receitas de drinks"
+author: "Cristiano Moreira & Sara Mortara"
+date: ""
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: false
+    lightbox: false
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, echo = FALSE, results = 'asis')
+library(knitr)
+library(rmdformats)
+library(stringr)
+library(dplyr)
+library(openxlsx)
+library(glue)
+```
+
+```{r objetos}
+drinks_id <- read.xlsx("dados/receitas_drinks.xlsx", sheet = 1)
+ingredientes <- read.xlsx("dados/receitas_drinks.xlsx", sheet = 2)
+ingredientes[is.na(ingredientes)] <- ""
+drinks_id <- drinks_id[order(drinks_id$drink), ]
+
+ingredientes$string <- paste("-", 
+                             ingredientes$quantidade, 
+                             ingredientes$unidade_quantidade, 
+                             ingredientes$ingrediente,  
+                             "\n\n")
+
+drinks <- left_join(drinks_id, ingredientes, by = c("drink", "id_drink"))
+```
+
+
+```{r receitas}
+for (i in 1:nrow(drinks_id)) {
+  cat(glue::glue("\n\n## {drinks_id$drink[i]}\n\n"))
+  cat(glue::glue("**Base:** {drinks_id$base[i]}\n\n\n\n"))
+  cat("**Ingredientes:**\n\n")
+  cat(glue::glue("{ingredientes$string[ingredientes$drink == drinks_id$drink[i]]}\n\n\n\n"))
+  cat(glue::glue("**Preparo:** {drinks_id$preparo[i]}\n\n"))
+}
+```
+
