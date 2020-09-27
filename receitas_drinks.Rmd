@@ -1,5 +1,5 @@
 ---
-title: "Receitas de drinks"
+title: "Receitas de drinks com poucos ingredientes"
 author: "Cristiano Moreira & Sara Mortara"
 date: ""
 output:
@@ -7,23 +7,33 @@ output:
     self_contained: true
     thumbnails: false
     lightbox: false
+    toc_depth: 3
 ---
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, echo = FALSE, results = 'asis')
 library(knitr)
 library(rmdformats)
-library(stringr)
 library(dplyr)
 library(openxlsx)
+library(measurements)
 library(glue)
 ```
 
 ```{r objetos}
 drinks_id <- read.xlsx("dados/receitas_drinks.xlsx", sheet = 1)
 ingredientes <- read.xlsx("dados/receitas_drinks.xlsx", sheet = 2)
+
+drinks_id <- drinks_id[order(drinks_id$base, 
+                             drinks_id$drink), ]
+bases <- unique(drinks_id$base)
+
+# Convert everything to ml
+# ingredientes$quantidade_conv <- round(conv_unit(as.numeric(ingredientes$quantidade), "us_oz", "ml"))
+# ingredientes$quantidade_ml <- ifelse(ingredientes$unidade_quantidade == "ml", 
+#                                      ingredientes$quantidade, 
+#                                      ingredientes$quantidade_conv)
 ingredientes[is.na(ingredientes)] <- ""
-drinks_id <- drinks_id[order(drinks_id$drink), ]
 
 ingredientes$string <- paste("-", 
                              ingredientes$quantidade, 
@@ -36,12 +46,20 @@ drinks <- left_join(drinks_id, ingredientes, by = c("drink", "id_drink"))
 
 
 ```{r receitas}
-for (i in 1:nrow(drinks_id)) {
-  cat(glue::glue("\n\n## {drinks_id$drink[i]}\n\n"))
-  cat(glue::glue("**Base:** {drinks_id$base[i]}\n\n\n\n"))
-  cat("**Ingredientes:**\n\n")
-  cat(glue::glue("{ingredientes$string[ingredientes$drink == drinks_id$drink[i]]}\n\n\n\n"))
-  cat(glue::glue("**Preparo:** {drinks_id$preparo[i]}\n\n"))
-}
+for (base in bases) {
+  
+  cat(glue::glue("\n\n## {tools::toTitleCase(base)}\n\n\n\n"))
+  
+  df <- drinks[drinks$base == base, ]
+  nomes <- unique(df$drink)  
+  
+  for (drink in nomes) {
+    cat(glue::glue("\n\n### {drink}\n\n"))
+    cat("**Ingredientes:**\n\n")
+    cat(glue::glue("{df$string[df$drink == drink]}\n\n\n\n"))
+    cat(glue::glue("**Preparo:** {unique(df$preparo[df$drink == drink])}\n\n"))
+  }
+}  
 ```
 
+  
