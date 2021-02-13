@@ -16,9 +16,17 @@ library(knitr)
 library(rmdformats)
 library(dplyr)
 library(openxlsx)
-library(measurements)
+#library(measurements)
 library(glue)
 ```
+
+## Instruções básicas
+
+Sempre tenha gelo filtrado pronto, vamos precisar de gelo comum e gelo grande para servir.
+
+O xarope de açúcar deve ser preparado em proporção 1:1 e o xarope de mel, 2:1.
+
+Tenha à mão: medidor, coqueteleira, colher bailarina, peneira e pilão.
 
 ```{r objetos}
 drinks_id <- read.xlsx("dados/receitas_drinks.xlsx", sheet = 1)
