@@ -50,6 +50,9 @@ ingredientes$string <- paste("-",
                              "\n\n")
 
 drinks <- left_join(drinks_id, ingredientes, by = c("drink", "id_drink"))
+copo_df <- data.frame(copo = c("alto", "baixo", "nn", "taça"), 
+                      figs = c("figs/alto.png", "figs/baixo.png",
+                      "figs/nick_nora.png", "figs/martini.png"))
 ```
 
 
@@ -62,8 +65,15 @@ for (base in bases) {
   nomes <- unique(df$drink)  
   
   for (drink in nomes) {
-    cat(glue::glue("\n\n### {drink}\n\n"))
+    # Adding image of the glass
+    copo <- unique(df$copo[df$drink == drink])
+    path_to_image <- copo_df$figs[copo_df$copo == copo]
+    copo_img <- paste0('![image alt >](', path_to_image,  '){width=2%}')
+    # Drink subtitle
+    cat(glue::glue("\n\n### {drink} {copo_img}\n\n"))
+    # Ingredients
     cat("**Ingredientes:**\n\n")
+    # Directions
     cat(glue::glue("{df$string[df$drink == drink]}\n\n\n\n"))
     cat(glue::glue("**Preparo:** {unique(df$preparo[df$drink == drink])}\n\n"))
   }
