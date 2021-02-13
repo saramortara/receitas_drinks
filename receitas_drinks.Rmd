@@ -11,12 +11,14 @@ output:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, echo = FALSE, results = 'asis')
+knitr::opts_chunk$set(echo = FALSE, 
+                      message = FALSE, 
+                      echo = FALSE, 
+                      results = 'asis')
 library(knitr)
 library(rmdformats)
 library(dplyr)
 library(openxlsx)
-#library(measurements)
 library(glue)
 ```
 
@@ -29,53 +31,66 @@ O xarope de açúcar deve ser preparado em proporção 1:1 e o xarope de mel, 2:
 Tenha à mão: medidor, coqueteleira, colher bailarina, peneira e pilão.
 
 ```{r objetos}
+# Reading data
 drinks_id <- read.xlsx("dados/receitas_drinks.xlsx", sheet = 1)
 ingredientes <- read.xlsx("dados/receitas_drinks.xlsx", sheet = 2)
 
-drinks_id <- drinks_id[order(drinks_id$base, 
-                             drinks_id$drink), ]
+# Sorting by base and drink alphabetic order
+drinks_id <- drinks_id %>% 
+  arrange(base, drink)
+
+# Object for bases
 bases <- unique(drinks_id$base)
 
-# Convert everything to ml
-# ingredientes$quantidade_conv <- round(conv_unit(as.numeric(ingredientes$quantidade), "us_oz", "ml"))
-# ingredientes$quantidade_ml <- ifelse(ingredientes$unidade_quantidade == "ml", 
-#                                      ingredientes$quantidade, 
-#                                      ingredientes$quantidade_conv)
+# Filling NA w/ ""
 ingredientes[is.na(ingredientes)] <- ""
 
+# Creating the string for ingredients
 ingredientes$string <- paste("-", 
                              ingredientes$quantidade, 
                              ingredientes$unidade_quantidade, 
                              ingredientes$ingrediente,  
                              "\n\n")
 
-drinks <- left_join(drinks_id, ingredientes, by = c("drink", "id_drink"))
+# Creating a data frame w/ image paths for the glasses
 copo_df <- data.frame(copo = c("alto", "baixo", "nn", "taça"), 
                       figs = c("figs/alto.png", "figs/baixo.png",
                       "figs/nick_nora.png", "figs/martini.png"))
+
+# Binding all data
+drinks <- left_join(drinks_id, ingredientes, by = c("drink", "id_drink"))
 ```
 
 
 ```{r receitas}
+# Loop over the base
 for (base in bases) {
   
   cat(glue::glue("\n\n## {tools::toTitleCase(base)}\n\n\n\n"))
   
-  df <- drinks[drinks$base == base, ]
+  df <- drinks %>% 
+    filter(base == base)
+  
   nomes <- unique(df$drink)  
   
+  # Loop over the drink
   for (drink in nomes) {
+    
     # Adding image of the glass
     copo <- unique(df$copo[df$drink == drink])
     path_to_image <- copo_df$figs[copo_df$copo == copo]
     copo_img <- paste0('![image alt >](', path_to_image,  '){width=2%}')
+    
     # Drink subtitle
     cat(glue::glue("\n\n### {drink} {copo_img}\n\n"))
+    
     # Ingredients
     cat("**Ingredientes:**\n\n")
-    # Directions
     cat(glue::glue("{df$string[df$drink == drink]}\n\n\n\n"))
+    
+    # Directions
     cat(glue::glue("**Preparo:** {unique(df$preparo[df$drink == drink])}\n\n"))
+    
   }
 }  
 ```
