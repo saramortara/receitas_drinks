@@ -68,8 +68,7 @@ for (base in bases) {
   
   cat(glue::glue("\n\n## {tools::toTitleCase(base)}\n\n\n\n"))
   
-  df <- drinks %>% 
-    filter(base == base)
+  df <- drinks[drinks$base == base, ]
   
   nomes <- unique(df$drink)  
   
